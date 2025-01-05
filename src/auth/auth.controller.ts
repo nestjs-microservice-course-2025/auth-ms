@@ -18,8 +18,7 @@ export class AuthController {
   }
 
   @MessagePattern('auth.verify.token')
-  async verifyToken() {
-    return 'token verificado';
-    // return this.AuthService.verifyToken(loginUserDto);
+  async verifyToken(@Payload() token: string) {
+    return this.AuthService.verifyToken(token);
   }
 }
