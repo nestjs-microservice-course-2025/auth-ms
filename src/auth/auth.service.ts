@@ -1,8 +1,8 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import { RegisterUserDto } from './dto';
+import { LoginUserDto, RegisterUserDto } from './dto';
 
 @Injectable()
 export class AuthService extends PrismaClient implements OnModuleInit {
@@ -24,7 +24,7 @@ export class AuthService extends PrismaClient implements OnModuleInit {
       if (user) {
         throw new RpcException({
           message: 'User already exists',
-          status: 409,
+          status: HttpStatus.CONFLICT,
         });
       }
       user = await this.user.create({
@@ -34,6 +34,36 @@ export class AuthService extends PrismaClient implements OnModuleInit {
           password: bcrypt.hashSync(password, 10),
         },
       });
+      const { password: __, ...rest } = user;
+      return { user: rest, token: 'sadas' };
+    } catch (error) {
+      if (error instanceof RpcException) {
+        throw error;
+      } else {
+        throw new RpcException(error);
+      }
+    }
+  }
+
+  async loginUser(loginUserDto: LoginUserDto) {
+    const { email, password } = loginUserDto;
+    try {
+      let user = await this.user.findUnique({
+        where: { email },
+      });
+      if (!user) {
+        throw new RpcException({
+          message: 'User or password incorrect',
+          status: HttpStatus.BAD_REQUEST,
+        });
+      }
+      const isPasswordCorrect = await bcrypt.compare(password, user.password);
+      if (!isPasswordCorrect) {
+        throw new RpcException({
+          message: 'User or password incorrect',
+          status: HttpStatus.BAD_REQUEST,
+        });
+      }
       const { password: __, ...rest } = user;
       return { user: rest, token: 'sadas' };
     } catch (error) {

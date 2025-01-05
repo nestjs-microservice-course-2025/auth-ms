@@ -14,11 +14,11 @@ export class AuthController {
 
   @MessagePattern('auth.login.user')
   async loginUser(@Payload() loginUserDto: LoginUserDto) {
-    return loginUserDto;
+    return this.AuthService.loginUser(loginUserDto);
   }
 
   @MessagePattern('auth.verify.token')
   async verifyToken() {
-    return 'verify token desde auth ms';
+    // return this.AuthService.verifyToken(loginUserDto);
   }
 }
