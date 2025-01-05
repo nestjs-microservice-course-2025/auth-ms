@@ -3,16 +3,22 @@ import { RpcException } from '@nestjs/microservices';
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { LoginUserDto, RegisterUserDto } from './dto';
+import { JwtService } from '@nestjs/jwt';
+import { JwtPayload } from './interfaces/jwt-payload.interface';
 
 @Injectable()
 export class AuthService extends PrismaClient implements OnModuleInit {
   private readonly logger = new Logger(AuthService.name);
-  constructor() {
+  constructor(private readonly jwtService: JwtService) {
     super();
   }
   onModuleInit() {
     this.$connect();
     this.logger.log('Connected to MongoDB database');
+  }
+
+  async signJWT(payload: JwtPayload) {
+    return this.jwtService.sign(payload);
   }
 
   async registerUser(registerUserDto: RegisterUserDto) {
@@ -35,7 +41,7 @@ export class AuthService extends PrismaClient implements OnModuleInit {
         },
       });
       const { password: __, ...rest } = user;
-      return { user: rest, token: 'sadas' };
+      return { user: rest, token: await this.signJWT(rest) };
     } catch (error) {
       if (error instanceof RpcException) {
         throw error;
@@ -65,7 +71,7 @@ export class AuthService extends PrismaClient implements OnModuleInit {
         });
       }
       const { password: __, ...rest } = user;
-      return { user: rest, token: 'sadas' };
+      return { user: rest, token: await this.signJWT(rest) };
     } catch (error) {
       if (error instanceof RpcException) {
         throw error;
