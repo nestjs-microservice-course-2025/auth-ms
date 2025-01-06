@@ -21,7 +21,7 @@ async function bootstrap() {
   );
   await app.listen();
   logger.log(
-    `Auth microservice running on port ${envs.port} with transport layer TCP`,
+    `Auth microservice running on port ${envs.port} with transport layer NAT`,
   );
 }
 bootstrap();
